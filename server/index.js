@@ -11,6 +11,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import http from "http";
 import { Server } from "socket.io";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -23,10 +24,11 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
   },
 });
 
@@ -52,6 +54,12 @@ io.on("connection", (socket) => {
         senderId,
         text,
       });
+
+      io.to(receiverSocket).emit("newNotification", {
+        type: "message",
+        senderId,
+      });
+
     }
   });
 

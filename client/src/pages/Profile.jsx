@@ -30,7 +30,7 @@ function Profile() {
     const currentUser = JSON.parse(localStorage.getItem("user"));
 
     // =============================
-    // 🔥 FETCH PROFILE + POSTS
+    //    FETCH PROFILE + POSTS
     // =============================
     useEffect(() => {
         const fetchProfile = async () => {
@@ -61,7 +61,7 @@ function Profile() {
     }, [id]);
 
     // =============================
-    // 🔥 FOLLOW / UNFOLLOW
+    //      FOLLOW / UNFOLLOW
     // =============================
     const handleFollow = async () => {
         try {
@@ -82,7 +82,7 @@ function Profile() {
     };
 
     // =============================
-    // 🔥 UPDATE PROFILE
+    //       UPDATE PROFILE
     // =============================
     const handleUpdate = async () => {
         try {
@@ -93,17 +93,17 @@ function Profile() {
             formData.append("location", form.location);
             formData.append("website", form.website);
 
-            // ✅ PROFILE IMAGE
+            // PROFILE IMAGE
             if (file) {
                 formData.append("profilePic", file);
             }
 
-            // ✅ COVER IMAGE (THIS IS WHAT YOU ASKED)
+            // COVER IMAGE 
             if (coverFile) {
                 formData.append("coverPic", coverFile);
             }
 
-            // ✅ SETTINGS
+            // SETTINGS
             formData.append("settings", JSON.stringify(user.settings));
 
             const res = await API.put("/profile", formData);
@@ -116,7 +116,7 @@ function Profile() {
     };
 
     // =============================
-    // 🔥 LIKE HANDLER (PASS TO POSTS)
+    //        LIKE HANDLER 
     // =============================
     const handleLike = async (postId) => {
         try {
@@ -176,7 +176,7 @@ function Profile() {
         }
     };
     // =============================
-    // 🧠 CONDITIONS
+    //          CONDITIONS
     // =============================
     if (!user) return <p className="text-center mt-10">Loading...</p>;
 
@@ -187,7 +187,7 @@ function Profile() {
         .includes(currentUser._id);
 
     // =============================
-    // 🎯 UI
+    //             UI
     // =============================
     return (
         <div className="max-w-5xl mx-auto mt-25 mb-25">

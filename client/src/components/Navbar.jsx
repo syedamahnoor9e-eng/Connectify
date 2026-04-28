@@ -1,9 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Bell, LogOut, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
+import Profile from "../pages/Profile";
+import Notifications from "../pages/Notifications";
+
 function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
   const [search, setSearch] = useState("")
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -28,7 +32,7 @@ function Navbar() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              onChange={() => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search Connectify..."
               className="w-full bg-gray-700 focus:ring-blue-500 focus:ring-2 focus:outline-none pl-10 text-white rounded-lg pr-4 py-2 placeholder-gray-400"
             />
@@ -40,12 +44,14 @@ function Navbar() {
           {token ? (
             <>
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate(`/profile/${userId}`)}
                 className="flex gap-2 items-center hover:text-blue-400 transition-colors">
                 <LayoutDashboard className="w-5 h-5" />
                 <span>Dashboard</span>
               </button>
-              <button className="flex gap-2 items-center hover:text-blue-400 transition-colors">
+              <button
+                onClick={() => navigate("/notifications")}
+                className="flex gap-2 items-center hover:text-blue-400 transition-colors">
                 <Bell className="w-5 h-5" />
                 <span>Notifications</span>
               </button>

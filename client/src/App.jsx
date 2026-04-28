@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -11,10 +10,11 @@ import { Toaster } from "react-hot-toast";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile"
 import Chat from "./pages/Chat";
+import Notifications from "./pages/Notifications";
 
 function NavbarWrapper() {
   const location = useLocation();
-  const hideNavbarOn = ["/","/login", "/register", "/forgot-password",];
+  const hideNavbarOn = ["/", "/login", "/register", "/forgot-password",];
 
   if (hideNavbarOn.includes(location.pathname) ||
     location.pathname.startsWith("/reset-password")) {
@@ -37,14 +37,6 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/feed"
             element={
               <ProtectedRoute>
@@ -54,6 +46,7 @@ function App() {
           />
           <Route path="/profile/:id" element={<Profile />} />
           <Route path="/chat/:id" element={<Chat />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </Router>
     </>

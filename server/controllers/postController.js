@@ -1,5 +1,6 @@
 import Post from "../models/Post.js";
 import cloudinary from "../config/Cloudinary.js";
+import Notification from "../models/Notification.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -23,7 +24,7 @@ export const createPost = async (req, res) => {
       mediaType = uploadResult.resource_type;
     }
     if (!content && !media) {
-      return toast.error("Post cannot be empty");
+      return res.status(400).json({ message: "Post cannot be empty" });
     }
     const post = await Post.create({
       user: req.user.id,
@@ -50,7 +51,7 @@ export const getPosts = async (req, res) => {
 
     res.json(posts);
   } catch (error) {
-    console.log("GET POSTS ERROR:", error); // 🔥 debug
+    console.log("GET POSTS ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -106,6 +107,20 @@ export const toggleLike = async (req, res) => {
       );
     } else {
       post.likes.push(userId);
+
+      const receiver = await User.findById(post.user);
+
+      if (
+        post.user.toString() !== userId &&
+        receiver.settings?.pushNotifications
+      ) {
+        await Notification.create({
+          recipient: post.user,
+          sender: userId,
+          type: "like",
+          post: post._id,
+        });
+      }
     }
 
     await post.save();
