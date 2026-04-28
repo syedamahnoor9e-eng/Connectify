@@ -1,24 +1,26 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { Send, User } from "lucide-react"; 
 import API from "../api/axiosInstance";
 import socket from "../socket";
 
 const Chat = () => {
-    const { id: userId } = useParams(); 
+    const { id: userId } = useParams();
     const currentUserId = localStorage.getItem("userId");
-
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
-
-    const endRef = useRef(); 
+    const endRef = useRef();
 
     // FETCH MESSAGES
     useEffect(() => {
         const fetchMessages = async () => {
-            const res = await API.get(`/messages/${userId}`);
-            setMessages(res.data);
+            try {
+                const res = await API.get(`/messages/${userId}`);
+                setMessages(res.data);
+            } catch (err) {
+                console.error("Failed to fetch messages");
+            }
         };
-
         if (userId) fetchMessages();
     }, [userId]);
 
@@ -37,14 +39,11 @@ const Chat = () => {
         socket.on("receiveMessage", (data) => {
             setMessages(prev => [...prev, data]);
         });
-
         return () => socket.off("receiveMessage");
     }, []);
 
-    // SEND MESSAGE
     const handleSend = async () => {
         if (!text.trim()) return;
-
         const newMsg = {
             sender: currentUserId,
             receiver: userId,
@@ -58,13 +57,11 @@ const Chat = () => {
                 receiverId: userId,
                 text,
             });
-
             socket.emit("sendMessage", {
                 senderId: currentUserId,
                 receiverId: userId,
                 text,
             });
-
             setText("");
         } catch {
             alert("Failed to send message");
@@ -72,48 +69,55 @@ const Chat = () => {
     };
 
     return (
-        <div className="p-4 max-w-xl mx-auto">
+        <div className="flex flex-col h-[calc(100vh-140px)] max-w-2xl mx-auto bg-white shadow-lg mt-20 rounded-2xl overflow-hidden border border-gray-100">
 
             {/* CHAT HEADER */}
-            <h2 className="font-semibold mb-4 text-lg">
-                Chat with User
-            </h2>
+            <div className="p-4 border-b bg-white flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                    <User size={20} />
+                </div>
+                <div>
+                    <h2 className="font-bold text-gray-800">Direct Message</h2>
+                    <p className="text-xs text-green-500 font-medium">Online</p>
+                </div>
+            </div>
 
-            <div className="h-100 overflow-y-auto border p-4 mb-4">
-                {messages.map((msg, i) => (
-                    <div
-                        key={i}
-                        className={`mb-2 ${msg.sender === currentUserId
-                                ? "text-right"
-                                : "text-left"
-                            }`}
-                    >
-                        <span className="bg-gray-200 px-3 py-1 rounded-lg inline-block">
-                            {msg.text}
-                        </span>
-                    </div>
-                ))}
-
-                {/* AUTO SCROLL TARGET */}
+            {/* MESSAGES AREA */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                {messages.map((msg, i) => {
+                    const isMe = msg.sender === currentUserId;
+                    return (
+                        <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                            <div className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm shadow-sm ${isMe
+                                    ? "bg-purple-600 text-white rounded-tr-none"
+                                    : "bg-white text-gray-800 border border-gray-200 rounded-tl-none"
+                                }`}>
+                                {msg.text}
+                            </div>
+                        </div>
+                    );
+                })}
                 <div ref={endRef}></div>
             </div>
 
-            <div className="flex gap-2">
-                <input
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    className="flex-1 border px-3 py-2 rounded"
-                    placeholder="Type message..."
-                />
-
-                <button
-                    onClick={handleSend}
-                    className="bg-blue-500 text-white px-4 rounded"
-                >
-                    Send
-                </button>
+            {/* INPUT AREA */}
+            <div className="p-4 bg-white border-t">
+                <div className="flex gap-2 bg-gray-100 p-2 rounded-xl border focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-500 transition-all">
+                    <input
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                        className="flex-1 bg-transparent px-2 py-1 outline-none text-sm"
+                        placeholder="Write a message..."
+                    />
+                    <button
+                        onClick={handleSend}
+                        className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-colors"
+                    >
+                        <Send size={18} />
+                    </button>
+                </div>
             </div>
-
         </div>
     );
 };

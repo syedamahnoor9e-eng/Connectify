@@ -1,4 +1,5 @@
-import { ArrowRight, Play } from "lucide-react";
+import { LogIn } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function Hero() {
     return (
@@ -18,13 +19,19 @@ export function Hero() {
                     </p>
 
                     <div className="flex gap-4">
-                        <button className="px-6 py-3 bg-purple-600 text-white rounded-lg flex gap-2">
-                            Start Connecting <ArrowRight size={18} />
-                        </button>
+                        <Link
+                            to="/register"
+                            className="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                        >
+                            Start Connecting
+                        </Link>
 
-                        <button className="px-6 py-3 border flex gap-2 rounded-lg">
-                            <Play size={18} /> Watch Demo
-                        </button>
+                        <Link
+                            to="/login"
+                            className="px-6 py-3 border flex items-center gap-2 rounded-lg font-medium border-b-2 hover:border-purple-600 transition-colors"
+                        >
+                            <LogIn size={18} /> Login
+                        </Link>
                     </div>
                 </div>
 
