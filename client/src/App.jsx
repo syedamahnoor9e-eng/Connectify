@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
 import Feed from "./pages/Feed";
 import Profile from "./pages/Profile"
+import Chat from "./pages/Chat";
 
 function NavbarWrapper() {
   const location = useLocation();
@@ -52,6 +53,7 @@ function App() {
             }
           />
           <Route path="/profile/:id" element={<Profile />} />
+          <Route path="/chat/:id" element={<Chat />} />
         </Routes>
       </Router>
     </>

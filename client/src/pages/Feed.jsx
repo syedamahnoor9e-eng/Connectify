@@ -3,25 +3,34 @@ import API from "../api/axiosInstance";
 import toast from "react-hot-toast";
 import FeedCard from "../components/FeedCard";
 import CreatePost from "../components/CreatePost";
+import ProfileSidebar from "../components/ProfileSidebar";
+import MessagesSidebar from "../components/MessagesSidebar";
 
 function Feed() {
-    const [posts, setPosts] = useState([])
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true); // ✅ ADDED
 
-    //Fetch Posts
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // Fetch Posts
     const fetchPosts = async () => {
         try {
-            const res = await API.get("/posts")
-            setPosts(res.data)
+            setLoading(true); 
+            const res = await API.get("/posts");
+            setPosts(res.data);
+
         } catch (error) {
             toast.error("Failed to load posts");
+        } finally {
+            setLoading(false); 
         }
-    }
+    };
 
     useEffect(() => {
         fetchPosts();
     }, []);
 
-    //HANDLE LIKE FUNCTION
+    // HANDLE LIKE FUNCTION
     const handleLike = async (postId) => {
         try {
             const userId = localStorage.getItem("userId");
@@ -59,19 +68,45 @@ function Feed() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-4 mt-25">
+        <div className="flex max-w-7xl mx-auto mt-10 gap-6 mb-25">
 
-            <CreatePost onPostCreated={fetchPosts} />
+            {/* LEFT SIDEBAR */}
+            <div className="w-1/4">
+                <ProfileSidebar user={user} />
+            </div>
 
-            {posts.length == 0 ? (
-                <p>No posts yet</p>
-            ) : (
-                posts.map((post) => (
-                    <FeedCard key={post._id} post={post} handleLike={handleLike} setPosts={setPosts} />
-                ))
-            )}
+            {/* CENTER FEED */}
+            <div className="flex-1 max-w-2xl">
+                <CreatePost onPostCreated={fetchPosts} />
+
+                {/* LOADING STATE */}
+                {loading ? (
+                    <p className="text-center text-gray-500 mt-10">
+                        Loading posts...
+                    </p>
+                ) : posts.length === 0 ? (
+                    <p className="text-center text-gray-500 mt-10">
+                        No posts yet. Start sharing something 🚀
+                    </p>
+                ) : (
+                    posts.map((post) => (
+                        <FeedCard
+                            key={post._id}
+                            post={post}
+                            handleLike={handleLike}
+                            setPosts={setPosts}
+                        />
+                    ))
+                )}
+            </div>
+
+            {/* RIGHT SIDEBAR */}
+            <div className="w-1/4">
+                <MessagesSidebar />
+            </div>
+
         </div>
     );
-
 }
+
 export default Feed;

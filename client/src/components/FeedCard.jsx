@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 export function FeedCard({ post, handleLike, setPosts }) {
 
     const navigate = useNavigate();
-    
+
     const [commentText, setCommentText] = useState("");
     const [showHeart, setShowHeart] = useState(false);
     const [showComments, setShowComments] = useState(false);
@@ -37,7 +37,7 @@ export function FeedCard({ post, handleLike, setPosts }) {
         avatar: post.user?.profilePic || "https://i.pravatar.cc/40",
     };
 
-    // ADD COMMENT (OPTIMISTIC + SYNC)
+    // ADD COMMENT
     const handleComment = async () => {
         if (!commentText.trim()) return;
 
@@ -68,7 +68,6 @@ export function FeedCard({ post, handleLike, setPosts }) {
                 text: tempComment.text,
             });
 
-            // replace with real comments
             setPosts(prev =>
                 prev.map(p =>
                     p._id === post._id
@@ -84,6 +83,9 @@ export function FeedCard({ post, handleLike, setPosts }) {
 
     // DELETE COMMENT
     const handleDelete = async (commentId) => {
+        const oldComments = post.comments;
+
+        // optimistic update
         setPosts(prev =>
             prev.map(p =>
                 p._id === post._id
@@ -92,18 +94,36 @@ export function FeedCard({ post, handleLike, setPosts }) {
             )
         );
 
-        await API.delete(`/posts/${post._id}/comment/${commentId}`);
+        try {
+            await API.delete(`/posts/${post._id}/comment/${commentId}`);
+        } catch {
+            toast.error("Failed to delete comment");
+
+            setPosts(prev =>
+                prev.map(p =>
+                    p._id === post._id
+                        ? { ...p, comments: oldComments }
+                        : p
+                )
+            );
+        }
     };
 
     // EDIT COMMENT
     const handleEdit = async (commentId) => {
+
+        if (!editText.trim()) return;
+        const oldComments = post.comments;
+
         setPosts(prev =>
             prev.map(p =>
                 p._id === post._id
                     ? {
                         ...p,
                         comments: p.comments.map(c =>
-                            c._id.toString() === commentId.toString() ? { ...c, text: editText } : c
+                            c._id.toString() === commentId.toString()
+                                ? { ...c, text: editText }
+                                : c
                         ),
                     }
                     : p
@@ -112,9 +132,21 @@ export function FeedCard({ post, handleLike, setPosts }) {
 
         setEditingId(null);
 
-        await API.put(`/posts/${post._id}/comment/${commentId}`, {
-            text: editText,
-        });
+        try {
+            await API.put(`/posts/${post._id}/comment/${commentId}`, {
+                text: editText,
+            });
+        } catch {
+            toast.error("Failed to edit comment");
+
+            setPosts(prev =>
+                prev.map(p =>
+                    p._id === post._id
+                        ? { ...p, comments: oldComments }
+                        : p
+                )
+            );
+        }
     };
 
     const handleShare = () => {
@@ -136,26 +168,50 @@ export function FeedCard({ post, handleLike, setPosts }) {
     };
 
     const handleDeletePost = async () => {
+        const oldPosts = post;
+
         setPosts(prev => prev.filter(p => p._id !== post._id));
-        await API.delete(`/posts/${post._id}`);
+
+        try {
+            await API.delete(`/posts/${post._id}`);
+            toast.success("Post deleted");
+        } catch (err) {
+            toast.error("Failed to delete post");
+
+            setPosts(prev => [...prev, oldPosts]);
+        }
     };
 
     const handleEditPost = async () => {
+        if (!editPostText.trim()) return;
+
+        const oldContent = post.content;   
+
         setPosts(prev =>
             prev.map(p =>
                 p._id === post._id ? { ...p, content: editPostText } : p
             )
         );
 
-        await API.put(`/posts/${post._id}`, {
-            content: editPostText,
-        });
+        try {
+            await API.put(`/posts/${post._id}`, {
+                content: editPostText,
+            });
 
-        setEditingPost(false);
+            setEditingPost(false);
+        } catch (err) {
+            toast.error("Failed to edit post");
+
+            setPosts(prev =>
+                prev.map(p =>
+                    p._id === post._id ? { ...p, content: oldContent } : p
+                )
+            );
+        }
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-300 overflow-hidden hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-lg border border-gray-300 overflow-hidden hover:shadow-lg transition-shadow mb-10">
 
             {/* HEADER */}
             <div className="p-4 flex items-center justify-between border-b border-gray-200">
@@ -213,11 +269,19 @@ export function FeedCard({ post, handleLike, setPosts }) {
                                 onChange={(e) => setEditPostText(e.target.value)}
                                 className="flex-1 border rounded px-2 py-1"
                             />
+
                             <button
                                 onClick={handleEditPost}
                                 className="text-blue-500 text-sm"
                             >
                                 Save
+                            </button>
+
+                            <button
+                                onClick={() => setEditingPost(false)}
+                                className="text-gray-500 text-sm"
+                            >
+                                Cancel
                             </button>
                         </div>
                     ) : (
